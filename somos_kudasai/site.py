@@ -5,8 +5,10 @@ from chibi.snippet import regex
 from chibi.snippet.func import retry_on_exception
 from chibi_requests import Chibi_url
 
+from .base import Site
 from .exceptions import Unexpected_response
 from .regex import main_url
+from .article import Article
 
 
 logger = logging.getLogger( 'kudasai.site' )
@@ -15,55 +17,18 @@ logger = logging.getLogger( 'kudasai.site' )
 somos_kudasai_url = 'https://somoskudasai.com/listado-noticias'
 
 
-class Site:
-    def __init__( self, url=None ):
-        if not url:
-            raise NotImplementedError
-        self.url = Chibi_url( url )
-
-    def append( self, url ):
-        url = Chibi_url( url )
-        if not self.processing_order:
-            raise NotImplementedError
-
-        for proccesor in self.processing_order:
-            result = proccesor.can_proccess( url )
-            if result:
-                self.urls.append( result )
-                return result
-
-    def can_proccess( self, url ):
-        raise NotImplementedError
-
-    @retry_on_exception
-    def get( self, *args, url=None, **kw ):
-        if url is None:
-            url = self.url
-        response = url.get()
-        if not response.ok:
-            raise Unexpected_response
-        return response
-
-    @property
-    def soup( self ):
-        try:
-            return self._soup
-        except AttributeError:
-            response = self.get()
-            self._soup = response.native
-            return self._soup
-
-
 class Somos_kudasai( Site ):
-    processing_order = []
+    processing_order = [ Article ]
 
     def __init__( self, url=None ):
+        self.urls = []
         if not url or self.url_is_main( url ):
             url = somos_kudasai_url
         self.url = Chibi_url( url )
 
-    def can_proccess( self, url ):
-        return self.url_is_main( url )
+    @staticmethod
+    def can_proccess( url ):
+        return Somos_kudasai.url_is_main( url )
 
     @staticmethod
     def url_is_main( url ):
@@ -96,9 +61,12 @@ class Somos_kudasai( Site ):
             yield self.build_article( link )
 
     def build_article( self, url ):
-        from .article import Article
         return Article( url )
 
     def __iter__( self ):
-        for page in self.pages:
-            yield from page.articles
+        if not self.urls:
+            for page in self.pages:
+                yield from page.articles
+        else:
+            for url in self.urls:
+                yield url

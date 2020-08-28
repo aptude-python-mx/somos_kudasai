@@ -58,4 +58,28 @@ class Test_kudasai_get_articles( Test_kudasai ):
 
     def test_should_work_with_100_articles( self ):
         for article in itertools.islice( self.kudasai, 100 ):
+            print( article.url )
             self.assertIsInstance( article, Article )
+
+
+class Test_kudasai_append_url( Test_kudasai ):
+    def test_append_should_put_in_urls( self ):
+        for article in itertools.islice( self.kudasai, 2 ):
+            self.kudasai.append( article.url )
+        self.assertEqual( len( self.kudasai.urls ), 2 )
+
+    def test_the_urls_should_be_articles( self ):
+        for article in itertools.islice( self.kudasai, 2 ):
+            self.kudasai.append( article.url )
+
+        for article in self.kudasai.urls:
+            self.assertIsInstance( article, Article )
+
+    def test_when_have_urls_should_only_iter_those( self ):
+        for article in itertools.islice( self.kudasai, 2 ):
+            self.kudasai.append( article.url )
+
+        articles = list( itertools.islice( self.kudasai, 10 ) )
+
+        self.assertEqual( len( articles ), 2 )
+        self.assertEqual( articles, self.kudasai.urls )

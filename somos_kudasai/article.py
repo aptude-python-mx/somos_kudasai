@@ -6,8 +6,8 @@ from chibi.snippet.func import retry_on_exception
 from chibi_requests import Chibi_url
 
 from .exceptions import Unexpected_response
-from .regex import main_url
-from .site import Site
+from .regex import article_url, review_url
+from .base import Site
 
 
 logger = logging.getLogger( 'kudasai.article' )
@@ -31,3 +31,7 @@ class Article( Site ):
         date = datetime.datetime.strptime( metas[2].text, '%d/%m/%Y' )
         return Chibi_atlas(
             title=title, text=text, author=author, create_at=date )
+
+    @staticmethod
+    def can_proccess( url ):
+        return regex.test( article_url, url ) or regex.test( review_url, url )
