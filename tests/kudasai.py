@@ -7,9 +7,10 @@ from chibi_requests import Chibi_url
 from somos_kudasai import Somos_kudasai
 from somos_kudasai.site import somos_kudasai_url
 from somos_kudasai.article import Article
+from vcr_unittest import VCRTestCase
 
 
-class Test_kudasai( unittest.TestCase ):
+class Test_kudasai( VCRTestCase ):
     def setUp( self ):
         super().setUp()
         self.main_url = 'https://somoskudasai.com/'
@@ -58,7 +59,6 @@ class Test_kudasai_get_articles( Test_kudasai ):
 
     def test_should_work_with_100_articles( self ):
         for article in itertools.islice( self.kudasai, 100 ):
-            print( article.url )
             self.assertIsInstance( article, Article )
 
 
